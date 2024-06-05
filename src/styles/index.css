@@ -10,3 +10,13 @@
     import 'relative/path/to/stylesheet.scss';
 
 */
+.delete-icon {
+    display: none;
+    color: gray;
+    cursor: pointer;
+  }
+  
+  
+  .list-group-item:hover .delete-icon {
+    display: inline;
+  }

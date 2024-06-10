@@ -5,56 +5,106 @@ import rigoImage from "../../img/rigo-baby.jpg";
 const Home = () => {
 	const [tarea, setTarea] = useState("");
 	const [tareas, setTareas] = useState([]);
+	const [name] = useState("jaume153");
+	const [añadirTarea] = useState(false);
 
-	
-	const getAllData = async () => {
-		const data = await fetch('https://playground.4geeks.com/todo/users/jaume153');
-		if (data.ok) {
-			const dataJson = await data.json();
-			setTareas(dataJson.todos);
+
+	const obtenerTodasLasTareas = async () => {
+		try {
+			const response = await fetch(`https://playground.4geeks.com/todo/users/${name}`);
+			if (response.ok) {
+				const dataJson = await response.json();
+				setTareas(Array.isArray(dataJson.todos) ? dataJson.todos : []);				
+			} else {
+				console.error("Error al obtener tareas:", response.statusText);
+			}
+		} catch (error) {
+			console.error("Error al obtener tareas:", error);
 		}
 	};
 
-	
-	const manejarCambioTarea = (event) => {
-		setTarea(event.target.value);
+
+	const crearNuevaTarea = async (event) => {
+		event.preventDefault();
+		const nuevaTarea = { label: tarea, done: añadirTarea };
+		const response = await fetch(`https://playground.4geeks.com/todo/todos/${name}`, {
+			method: 'POST',
+			body: JSON.stringify(nuevaTarea),
+			headers: { "Content-Type": "application/json" }
+		});
+
+		if (response.ok) {
+			const dataJson = await response.json();
+			setTareas([...tareas, dataJson]);
+			setTarea("");
+		} else {
+			console.error("Error al crear nueva tarea:", response.statusText);
+		}
+	};
+
+
+	const eliminarTarea = async (todoId) => {
+		const response = await fetch(`https://playground.4geeks.com/todo/todos/${todoId}`, {
+			method: 'DELETE'
+		});
+		if (response.ok) {
+			setTareas(tareas.filter((item) => item.id !== todoId));
+		} else {
+			console.error("Error al eliminar tarea:", response.statusText);
+		}
+	};
+
+
+	const eliminarTodasLasTareas = async () => {		
+			const deletePromises = tareas.map((item) =>
+				fetch(`https://playground.4geeks.com/todo/todos/${item.id}`, { method: 'DELETE' })
+			);
+			await Promise.all(deletePromises);
+			setTareas([]);
+		
 	};
 
 
 	const manejarEnvioTarea = (event) => {
 		event.preventDefault();
-		if (tarea.trim() === "") return;
-		setTareas([...tareas, { label: tarea, done: false }]);
-		setTarea("");
+		crearNuevaTarea(event);
 	};
 
-	
-	const manejarEliminarTarea = (index) => {
-		const nuevasTareas = tareas.filter((_, tareaIndex) => tareaIndex !== index);
-		setTareas(nuevasTareas);
+
+	const manejarCambioTarea = (event) => {
+		setTarea(event.target.value);
 	};
 
-	
-	const manejarEliminarTodasTareas = () => {
-		setTareas([]);
-	};
 
-	
 	const manejarTeclaEnter = (event) => {
 		if (event.key === "Enter") {
 			manejarEnvioTarea(event);
 		}
 	};
 
-	
-	const contarTareas = () => {
-		return tareas.length === 1 ? "1 tarea pendiente" : `${tareas.length} tareas pendientes`;
+
+	const manejarEliminarTarea = (index) => {
+		const tareaId = tareas[index].id;
+		eliminarTarea(tareaId);
 	};
 
-	
+
+	const manejarEliminarTodasTareas = () => {
+		eliminarTodasLasTareas();
+	};
+
+
+	const contarTareas = () => {
+		return tareas.length === 0 ? "No hay tareas pendientes" : `Tareas pendientes: ${tareas.length}`;
+	};
+
 	useEffect(() => {
-		getAllData();
+		obtenerTodasLasTareas();
 	}, []);
+
+	useEffect(() => {
+		setTarea("");
+	  }, [tareas]);
 
 	return (
 		<div className="container">

@@ -9,18 +9,14 @@ const Home = () => {
 	const [añadirTarea] = useState(false);
 
 
-	const obtenerTodasLasTareas = async () => {
-		try {
+	const obtenerTodasLasTareas = async () => {		
 			const response = await fetch(`https://playground.4geeks.com/todo/users/${name}`);
 			if (response.ok) {
 				const dataJson = await response.json();
 				setTareas(Array.isArray(dataJson.todos) ? dataJson.todos : []);				
 			} else {
 				console.error("Error al obtener tareas:", response.statusText);
-			}
-		} catch (error) {
-			console.error("Error al obtener tareas:", error);
-		}
+			}		
 	};
 
 
@@ -56,10 +52,10 @@ const Home = () => {
 
 
 	const eliminarTodasLasTareas = async () => {		
-			const deletePromises = tareas.map((item) =>
+			const eliminarTareas = tareas.map((item) =>
 				fetch(`https://playground.4geeks.com/todo/todos/${item.id}`, { method: 'DELETE' })
 			);
-			await Promise.all(deletePromises);
+			await Promise.all(eliminarTareas);
 			setTareas([]);
 		
 	};
